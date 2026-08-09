@@ -53,14 +53,28 @@ pipeline {
                 sh '''
                     set -e
 
-                    echo "=== Building Docker Image in Minikube ==="
+                    echo "=== Configuring Docker to use Minikube ==="
 
-                    minikube image build \
+                    MINIKUBE_IP=$(minikube ip)
+
+                    export DOCKER_TLS_VERIFY=1
+                    export DOCKER_HOST=tcp://${MINIKUBE_IP}:2376
+                    export DOCKER_CERT_PATH=/var/lib/jenkins/.minikube/certs
+
+                    echo "Minikube IP: ${MINIKUBE_IP}"
+
+                    echo "=== Docker Server ==="
+                    docker info | grep -E "Server Version|Operating System|Name"
+
+                    echo "=== Building Docker Image ==="
+
+                    docker build \
                         -t ${IMAGE_NAME} \
                         ./app
 
-                    echo "=== Docker Image Build Completed ==="
-                    echo "Image: ${IMAGE_NAME}"
+                    echo "=== Docker Image Built Successfully ==="
+
+                    docker images | grep "${APP_NAME}"
                 '''
             }
         }
