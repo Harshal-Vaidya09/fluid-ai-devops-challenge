@@ -104,12 +104,14 @@ pipeline {
                 sh '''
                     echo "=== Deploying Backend ==="
 
+                    kubectl apply -f k8s/backend-deployment.yaml
+                    kubectl apply -f k8s/backend-service.yaml
+
+                    echo "=== Updating Backend Image ==="
+
                     kubectl set image deployment/backend \
                         backend=${IMAGE_NAME} \
                         -n ${NAMESPACE}
-
-                    kubectl apply -f /tmp/backend-deployment.yaml
-                    kubectl apply -f k8s/backend-service.yaml
 
                     echo "=== Verifying Backend Image ==="
 
