@@ -51,6 +51,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
+                    set -e
+
                     echo "=== Building Docker Image in Minikube ==="
 
                     minikube image build \
@@ -59,14 +61,13 @@ pipeline {
 
                     echo "=== Verifying Docker Image ==="
 
-                    minikube image ls | grep "${IMAGE_NAME}"
+                    eval $(minikube -p minikube docker-env)
 
-                    if [ $? -ne 0 ]; then
-                        echo "ERROR: Image ${IMAGE_NAME} was not found in Minikube"
-                        exit 1
-                    fi
+                    docker image inspect ${IMAGE_NAME} > /dev/null
 
-                    echo "Image ${IMAGE_NAME} successfully built and available in Minikube"
+                    echo "Docker image verified successfully:"
+                    docker image inspect ${IMAGE_NAME} \
+                        --format='{{.RepoTags}}'
                 '''
             }
         }
