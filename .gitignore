@@ -15,3 +15,6 @@ target/
 
 # Jenkins
 jenkins_home/
+
+# Kubernetes secrets
+k8s/postgres-secret.yaml
