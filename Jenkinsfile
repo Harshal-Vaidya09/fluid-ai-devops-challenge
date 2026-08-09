@@ -57,8 +57,16 @@ pipeline {
                         -t ${IMAGE_NAME} \
                         ./app
 
-                    echo "=== Image Built ==="
-                    minikube image ls | grep ${APP_NAME} || true
+                    echo "=== Verifying Docker Image ==="
+
+                    minikube image ls | grep "${IMAGE_NAME}"
+
+                    if [ $? -ne 0 ]; then
+                        echo "ERROR: Image ${IMAGE_NAME} was not found in Minikube"
+                        exit 1
+                    fi
+
+                    echo "Image ${IMAGE_NAME} successfully built and available in Minikube"
                 '''
             }
         }
@@ -95,12 +103,20 @@ pipeline {
                 sh '''
                     echo "=== Deploying Backend ==="
 
-                    sed "s|image: .*|image: ${IMAGE_NAME}|" \
-                        k8s/backend-deployment.yaml \
-                        > /tmp/backend-deployment.yaml
+                    kubectl set image deployment/backend \
+                        backend=${IMAGE_NAME} \
+                        -n ${NAMESPACE}
 
                     kubectl apply -f /tmp/backend-deployment.yaml
                     kubectl apply -f k8s/backend-service.yaml
+
+                    echo "=== Verifying Backend Image ==="
+
+                    kubectl get deployment backend \
+                        -n ${NAMESPACE} \
+                        -o jsonpath='{.spec.template.spec.containers[0].image}'
+
+                    echo
                 '''
             }
         }
