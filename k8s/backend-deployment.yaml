@@ -20,7 +20,7 @@ spec:
       containers:
         - name: backend
 
-          image: fluidai-devops-challenge:1.0.0
+          image: fluidai-devops-challenge:1
 
           imagePullPolicy: IfNotPresent
 

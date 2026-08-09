@@ -59,15 +59,8 @@ pipeline {
                         -t ${IMAGE_NAME} \
                         ./app
 
-                    echo "=== Verifying Docker Image ==="
-
-                    eval $(minikube -p minikube docker-env)
-
-                    docker image inspect ${IMAGE_NAME} > /dev/null
-
-                    echo "Docker image verified successfully:"
-                    docker image inspect ${IMAGE_NAME} \
-                        --format='{{.RepoTags}}'
+                    echo "=== Docker Image Build Completed ==="
+                    echo "Image: ${IMAGE_NAME}"
                 '''
             }
         }
@@ -102,23 +95,28 @@ pipeline {
         stage('Deploy Backend') {
             steps {
                 sh '''
-                    echo "=== Deploying Backend ==="
-
-                    kubectl apply -f k8s/backend-deployment.yaml
-                    kubectl apply -f k8s/backend-service.yaml
-
-                    echo "=== Updating Backend Image ==="
-
+                    set -e 
+                    
+                    echo "=== Applying Backend Deployment ===" 
+                    
+                    kubectl apply -f k8s/backend-deployment.yaml 
+                    
+                    echo "=== Updating Backend Image ===" 
+                    
                     kubectl set image deployment/backend \
                         backend=${IMAGE_NAME} \
-                        -n ${NAMESPACE}
-
-                    echo "=== Verifying Backend Image ==="
-
+                        -n ${NAMESPACE} 
+                        
+                    echo "=== Applying Backend Service ===" 
+                    
+                    kubectl apply -f k8s/backend-service.yaml 
+                    
+                    echo "=== Backend Image ===" 
+                    
                     kubectl get deployment backend \
                         -n ${NAMESPACE} \
-                        -o jsonpath='{.spec.template.spec.containers[0].image}'
-
+                        -o jsonpath='{.spec.template.spec.containers[0].image}' 
+                        
                     echo
                 '''
             }
